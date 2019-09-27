@@ -1,0 +1,17 @@
+set variable --name=APP_QUIET_EXECUTION --value=true
+start locator --name=locator1 --port=12345
+
+#configure pdx --disk-store=DEFAULT --read-serialized=true
+
+start server --name=server50505 --server-port=50505 --classpath=../build/classes/java/main --locators=localhost[12345] --start-rest-api --http-service-port=8080 --http-service-bind-address=localhost --group=group50505
+
+create lucene index --name=analyzerIndex --region=/Person --field=name,email,address,revenue --analyzer=DEFAULT,org.apache.lucene.analysis.core.KeywordAnalyzer,examples.MyCharacterAnalyzer,DEFAULT
+create lucene index --name=personIndex --region=/Person --field=name,email,address,revenue
+create lucene index --name=customerIndex --region=/Customer --field=contacts.email,myHomePages.content,contacts.name,contacts.phoneNumbers,contacts.homepage.title,name,phoneNumers --analyzer=org.apache.lucene.analysis.core.KeywordAnalyzer,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT,DEFAULT --serializer=org.apache.geode.cache.lucene.FlatFormatSerializer
+create lucene index --name=pageIndex --region=/Page --field=id,title,content
+create region --name=Person --type=PARTITION_REDUNDANT_PERSISTENT
+create region --name=Customer --type=PARTITION_REDUNDANT_PERSISTENT
+create region --name=Page --type=PARTITION_REDUNDANT_PERSISTENT
+
+query --query="select * from /Person"
+search lucene --name=personIndex --region=/Person --queryString="Tom*" --defaultField=name
